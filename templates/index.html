@@ -12,9 +12,9 @@
     <div class="header text-center">
       <h1 class="display-5 mb-3">📈 即時金融新聞總覽</h1>
       <p class="lead">來自 Google News 的即時金融報導</p>
-      <form method="post" class="row justify-content-center mb-4">
+      <form id="searchForm" class="row justify-content-center mb-4">
         <div class="col-auto">
-          <input type="text" name="query" class="form-control" placeholder="請輸入關鍵字查詢" value="{{ query }}">
+          <input type="text" id="queryInput" class="form-control" placeholder="請輸入關鍵字查詢" value="金融">
         </div>
         <div class="col-auto">
           <button type="submit" class="btn btn-primary">查詢</button>
@@ -22,21 +22,52 @@
       </form>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 g-4">
-      {% for article in news %}
-        <div class="col">
-          <div class="card h-100 p-3">
-            <div class="card-body">
-              <h5 class="card-title">
-                <a href="{{ article.link }}" target="_blank" class="text-dark">
-                  {{ article.title }}
-                </a>
-              </h5>
-              <p class="card-text text-muted small">來自 Google News</p>
+    <div id="newsList" class="row row-cols-1 row-cols-md-2 g-4"></div>
+  </div>
+  <script>
+    async function fetchNews(query) {
+      const res = await fetch('/api/news', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({query})
+      });
+      return await res.json();
+    }
+
+    function renderNews(news) {
+      const newsList = document.getElementById('newsList');
+      newsList.innerHTML = '';
+      news.forEach(article => {
+        newsList.innerHTML += `
+          <div class="col">
+            <div class="card h-100 p-3">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <a href="${article.link}" target="_blank" class="text-dark">
+                    ${article.title}
+                  </a>
+                </h5>
+                <p class="card-text text-muted small">來自 Google News</p>
+              </div>
             </div>
           </div>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
+        `;
+      });
+    }
+
+    document.getElementById('searchForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const query = document.getElementById('queryInput').value;
+      const news = await fetchNews(query);
+      renderNews(news);
+    });
+
+    // 頁面載入時自動查詢一次
+    window.onload = async () => {
+      const news = await fetchNews('金融');
+      renderNews(news);
+    };
+  </script>
 </body>
+</html>
+   
