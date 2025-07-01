@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import requests
 import os
 from bs4 import BeautifulSoup
@@ -16,12 +16,16 @@ def fetch_google_finance_news_rss(query="金融"):
         link = item.link.text
         news_list.append({"title": title, "link": link})
     return news_list
-
-@app.route("/", methods=["GET", "POST"])
+    
+@app.route("/", methods=["GET"])
 def index():
-    query = request.form.get("query", "金融")
+    return render_template("index.html")
+    
+@app.route("/api/news", methods=["POST"])
+def api_news():
+    query = request.json.get("query", "金融")
     news = fetch_google_finance_news_rss(query)
-    return render_template("index.html", news=news, query=query)
+    return jsonify(news)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
